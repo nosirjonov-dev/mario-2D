@@ -1,23 +1,32 @@
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flame/collisions.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import '../game_manager.dart';
 import 'coin.dart';
 import 'enemy.dart';
-import 'package:flutter/services.dart';
 
-class Player extends SpriteComponent with CollisionCallbacks, KeyboardHandler {
+class Player extends RectangleComponent
+    with CollisionCallbacks, KeyboardHandler {
+
   final double speed = 200;
   final double jumpForce = 400;
+
   bool isGrounded = true;
   Vector2 velocity = Vector2.zero();
 
+  Player()
+      : super(
+    size: Vector2(50, 50),
+    paint: Paint()..color = Colors.blue,
+  );
+
   @override
   Future<void> onLoad() async {
-    size = Vector2(50, 50);
     anchor = Anchor.center;
-    add(RectangleHitbox());
     position = Vector2(100, 300);
+    add(RectangleHitbox());
   }
 
   @override
@@ -40,6 +49,8 @@ class Player extends SpriteComponent with CollisionCallbacks, KeyboardHandler {
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+
+    // Horizontal movement
     if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
       velocity.x = speed;
     } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
@@ -48,7 +59,10 @@ class Player extends SpriteComponent with CollisionCallbacks, KeyboardHandler {
       velocity.x = 0;
     }
 
-    if (keysPressed.contains(LogicalKeyboardKey.space) && isGrounded) {
+    // Jump
+    if (event is KeyDownEvent &&
+        keysPressed.contains(LogicalKeyboardKey.space) &&
+        isGrounded) {
       velocity.y = -jumpForce;
       isGrounded = false;
     }
@@ -59,6 +73,7 @@ class Player extends SpriteComponent with CollisionCallbacks, KeyboardHandler {
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
+
     final game = findGame() as GameManager;
 
     if (other is Coin) {
